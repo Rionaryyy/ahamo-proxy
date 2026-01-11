@@ -33,9 +33,21 @@ app.get("/proxy", (req, res) => {
       // 2) Content-Type に charset が無い場合 → HTML 内の meta charset を探す
       if (!charset) {
         const ascii = buffer.toString("ascii"); // meta タグは ASCII 範囲で読める
+
+        // <meta charset="Shift_JIS">
         const metaMatch = ascii.match(/<meta[^>]*charset=["']?([^"'>\s]+)/i);
         if (metaMatch) {
           charset = metaMatch[1].toLowerCase();
+        }
+
+        // <meta http-equiv="Content-Type" content="text/html; charset=Shift_JIS">
+        if (!charset) {
+          const httpEquivMatch = ascii.match(
+            /<meta[^>]*http-equiv=["']content-type["'][^>]*content=["'][^"']*charset=([^"'>\s]+)/i
+          );
+          if (httpEquivMatch) {
+            charset = httpEquivMatch[1].toLowerCase();
+          }
         }
       }
 
